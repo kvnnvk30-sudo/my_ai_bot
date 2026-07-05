@@ -2,7 +2,7 @@
 """
 Диспетчер нейросетей.
 
-Три async-функции с ОДИНАКОВОЙ сигнатурой:
+Async-функция с сигнатурой:
 
     async def ask_xxx(history: list[dict], api_key: str) -> str
 
@@ -20,8 +20,10 @@
 
 Новая нейронка = новая функция ask_xxx() + новая строка в PROVIDERS. Больше никуда лезть не нужно.
 
-Все три SDK (google-generativeai, groq, cerebras_cloud_sdk) — синхронные,
-поэтому вызовы обёрнуты в asyncio.to_thread, чтобы не блокировать event loop aiogram.
+Сейчас в диспетчере остался только Cerebras (Gemini и Groq убраны:
+Gemini режет по региону, Groq требует платёжку/недоступную регистрацию).
+SDK cerebras_cloud_sdk — синхронный, поэтому вызов обёрнут в asyncio.to_thread,
+чтобы не блокировать event loop aiogram.
 """
 
 import asyncio
@@ -52,68 +54,6 @@ def _require_key(provider: str, api_key: str | None) -> str:
 
 
 # ---------------------------------------------------------------------- #
-# Gemini
-# ---------------------------------------------------------------------- #
-
-def _ask_gemini_sync(history: list[dict], api_key: str) -> str:
-    import google.generativeai as genai
-
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        system_instruction=SYSTEM_PROMPT,
-    )
-
-    # google-generativeai использует роли "user" / "model", а не "assistant"
-    contents = [
-        {
-            "role": "model" if msg["role"] == "assistant" else "user",
-            "parts": [msg["content"]],
-        }
-        for msg in history
-    ]
-
-    response = model.generate_content(contents)
-    return response.text
-
-
-async def ask_gemini(history: list[dict], api_key: str) -> str:
-    _require_key("gemini", api_key)
-    try:
-        return await asyncio.to_thread(_ask_gemini_sync, history, api_key)
-    except Exception as e:
-        raise ProviderError(f"Gemini: {e}") from e
-
-
-# ---------------------------------------------------------------------- #
-# Groq
-# ---------------------------------------------------------------------- #
-
-def _ask_groq_sync(history: list[dict], api_key: str) -> str:
-    from groq import Groq
-
-    client = Groq(api_key=api_key)
-
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [
-        {"role": msg["role"], "content": msg["content"]} for msg in history
-    ]
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-    )
-    return response.choices[0].message.content
-
-
-async def ask_groq(history: list[dict], api_key: str) -> str:
-    _require_key("groq", api_key)
-    try:
-        return await asyncio.to_thread(_ask_groq_sync, history, api_key)
-    except Exception as e:
-        raise ProviderError(f"Groq: {e}") from e
-
-
-# ---------------------------------------------------------------------- #
 # Cerebras
 # ---------------------------------------------------------------------- #
 
@@ -127,7 +67,7 @@ def _ask_cerebras_sync(history: list[dict], api_key: str) -> str:
     ]
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b",
+        model="gpt-oss-120b",
         messages=messages,
     )
     return response.choices[0].message.content
@@ -146,7 +86,5 @@ async def ask_cerebras(history: list[dict], api_key: str) -> str:
 # Ключи словаря ДОЛЖНЫ совпадать с models.SUPPORTED_PROVIDERS.
 # ---------------------------------------------------------------------- #
 PROVIDERS = {
-    "gemini": ask_gemini,
-    "groq": ask_groq,
     "cerebras": ask_cerebras,
 }

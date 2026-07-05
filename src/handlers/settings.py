@@ -30,8 +30,6 @@ router = Router(name="settings")
 
 # Человекочитаемые названия провайдеров для кнопок/текста
 PROVIDER_LABELS = {
-    "gemini": "Gemini",
-    "groq": "Groq",
     "cerebras": "Cerebras",
 }
 

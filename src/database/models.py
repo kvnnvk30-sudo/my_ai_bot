@@ -27,7 +27,7 @@ from tortoise.models import Model
 from src.config import settings  # settings.SECRET_KEY читается из .env (pydantic-settings)
 
 # Провайдеры, которые понимает бот. Должно совпадать с ключами словаря PROVIDERS в providers.py
-SUPPORTED_PROVIDERS = ("gemini", "groq", "cerebras")
+SUPPORTED_PROVIDERS = ("cerebras",)
 
 
 @lru_cache(maxsize=1)
@@ -45,7 +45,7 @@ class User(Model):
     id = fields.IntField(pk=True)
     telegram_id = fields.BigIntField(unique=True, index=True)
 
-    current_provider = fields.CharField(max_length=16, default="gemini")
+    current_provider = fields.CharField(max_length=16, default="cerebras")
 
     # Хранится как ЗАШИФРОВАННАЯ строка (результат Fernet.encrypt), не как чистый JSON.
     api_keys_encrypted = fields.TextField(null=True)
