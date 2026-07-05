@@ -1,0 +1,30 @@
+# Секреты и настройки окружения (КРИТИЧЕСКИ ВАЖНО)
+.env
+
+# Виртуальное окружение Python
+venv/
+.venv/
+env/
+ENV/
+
+# Локальная база данных SQLite
+*.sqlite3
+
+# Кэш Python и компилированный байт-код
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Кэш тестов (pytest) и отчеты о покрытии
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Логи работы бота
+*.log
+
+# Настройки IDE (VS Code, PyCharm)
+.vscode/
+.idea/
+*.swp
