@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock,AsyncMock
-from src.handlers.common import cmd_start,cmd_reset
+from src.database.models import SUPPORTED_PROVIDERS
+from src.handlers.common import cmd_start,cmd_reset,cmd_help
 
 @pytest.mark.asyncio
 async def test_start_resets_awaiting_input_for_existing_user(create_user):
@@ -46,3 +47,17 @@ async def test_reset_only_clears_history(create_user):
     assert user.history == []  # History should be cleared
     assert user.current_provider == provider_before_reset  # Current provider should remain unchanged
     assert user.get_key("cerebras") == key_before  # API key should remain
+
+
+async def test_help_lists_all_supported_providers():
+    # Create a mock message object
+    mock_message = MagicMock()
+    mock_message.answer = AsyncMock()
+
+    # Call the help command
+    await cmd_help(mock_message)
+
+    # Check that the answer contains all supported providers
+    answer_text = mock_message.answer.call_args[0][0]
+    for provider in SUPPORTED_PROVIDERS:
+        assert provider in answer_text
