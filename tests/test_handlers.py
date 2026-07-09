@@ -2,6 +2,9 @@ import pytest
 from unittest.mock import MagicMock,AsyncMock
 from src.database.models import SUPPORTED_PROVIDERS
 from src.handlers.common import cmd_start,cmd_reset,cmd_help
+from src.handlers.settings import _get_user
+from src.handlers.settings import cb_use_provider
+
 
 @pytest.mark.asyncio
 async def test_start_resets_awaiting_input_for_existing_user(create_user):
@@ -61,3 +64,32 @@ async def test_help_lists_all_supported_providers():
     answer_text = mock_message.answer.call_args[0][0]
     for provider in SUPPORTED_PROVIDERS:
         assert provider in answer_text
+
+
+async def test_use_provider_without_key_blocks_switch():
+    # Create a mock user without an API key for the provider
+    create_mock_user =MagicMock()
+    create_mock_user.get_key.return_value = None
+    # Create a mock callback query object
+    mock_callback = MagicMock()
+    mock_callback.data = "settings:use:cerebras"
+    mock_callback.from_user.id =84546531532153215
+    mock_callback.message.edit_text = AsyncMock()
+    mock_callback.answer = AsyncMock()
+
+    # Patch the _get_user function to return our mock user
+    _get_user_backup = _get_user  # Backup the original function
+    try:
+        globals()['_get_user'] = AsyncMock(return_value=create_mock_user)
+
+        # Call the callback handler
+        await cb_use_provider(mock_callback)
+
+        # Check that the callback answer was called with the expected message
+        mock_callback.answer.assert_called_with(
+            "Сначала задай API-ключ для Cerebras", show_alert=True
+        )
+        # Ensure that edit_text was not called since the switch should be blocked
+        mock_callback.message.edit_text.assert_not_called()
+    finally:
+        globals()['_get_user'] = _get_user_backup  # Restore the original function
