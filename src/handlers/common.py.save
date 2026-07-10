@@ -1,4 +1,4 @@
-"""
+ь6tzzzzzztztztztztztztz"""
 src/handlers/common.py
 
 Базовые команды бота: /start, /help, /reset.
@@ -72,15 +72,3 @@ async def cmd_reset(message: Message) -> None:
     user, _ = await User.get_or_create(telegram_id=message.from_user.id)
     await user.clear_history()
     await message.answer("🧹 История очищена. Начинаем с чистого листа.")
-
-@router.message(Command("cancel"))
-async def cmd_cancel(message: Message) -> None:
-    """/cancel — отменяет ожидание ввода (например, если передумал вводить API-ключ)."""
-    user, _ = await User.get_or_create(telegram_id=message.from_user.id)
-
-    if user.awaiting_input is None:
-        await message.answer("Нечего отменять.")
-        return
-
-    await user.set_awaiting(None)
-    await message.answer("Отменено.")

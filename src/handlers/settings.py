@@ -159,7 +159,7 @@ async def cb_set_key_prompt(callback: CallbackQuery) -> None:
 # ---------------------------------------------------------------------- #
 
 @router.message(Command("cancel"))
-async def cmd_cancel(message: Message) -> None:
+async def cmd_cancel(message: Message) -> None:#
     user = await _get_user(message.from_user.id)
     if user.awaiting_input is None:
         await message.answer("Нечего отменять.")
