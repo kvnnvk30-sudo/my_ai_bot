@@ -28,3 +28,11 @@ htmlcov/
 .vscode/
 .idea/
 *.swp
+# Playwright automation
+automation-test/.venv/
+automation-test/__pycache__/
+automation-test/.pytest_cache/
+automation-test/pay_test/__pycache__/
+automation-test/failure.png
+automation-test/test-results/
+automation-test/playwright-report/
